@@ -367,9 +367,9 @@
       <div class="kpi-card" style="--kc:#f43f5e; --kc-text:#f43f5e">
         <div class="kpi-glow"></div>
         <div class="kpi-icon">🚨</div>
-        <div class="kpi-label">Qtd Itens Faltantes</div>
+        <div class="kpi-label">Qtd Peças Faltantes</div>
         <div class="kpi-value" id="kpi-qtd-neg">—</div>
-        <div class="kpi-sub">No sistema, ausentes no físico</div>
+        <div class="kpi-sub">Divergência negativa (Sistema > Físico)</div>
         <span class="kpi-badge badge-red">Saldo Negativo</span>
       </div>
 
@@ -385,9 +385,9 @@
       <div class="kpi-card" style="--kc:#10b981; --kc-text:#10b981">
         <div class="kpi-glow"></div>
         <div class="kpi-icon">✅</div>
-        <div class="kpi-label">Qtd Itens Excedentes</div>
+        <div class="kpi-label">Qtd Peças Excedentes</div>
         <div class="kpi-value" id="kpi-qtd-pos">—</div>
-        <div class="kpi-sub">No físico, ausentes no sistema</div>
+        <div class="kpi-sub">Divergência positiva (Físico > Sistema)</div>
         <span class="kpi-badge badge-green">Saldo Positivo</span>
       </div>
 
@@ -444,7 +444,7 @@
     <div class="section-header fade-in">
       <div class="section-title">
         <div class="section-dot" style="--dot-color:var(--red)"></div>
-        Itens <strong style="color:var(--red)">FALTANTES</strong> — no Estoque mas ausentes na Contagem
+        Itens <strong style="color:var(--red)">FALTANTES</strong> — Quantidade no Sistema maior que no Físico
         <span class="count-pill red" id="cnt-neg">0</span>
       </div>
       <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap">
@@ -459,7 +459,7 @@
             <tr>
               <th onclick="sortTable('neg',0)">Cód. Item ↕</th>
               <th onclick="sortTable('neg',1)">Descrição ↕</th>
-              <th onclick="sortTable('neg',2)">Qtd Sistema ↕</th>
+              <th onclick="sortTable('neg',2)">Diferença (Qtd) ↕</th>
               <th onclick="sortTable('neg',3)">Grupo ↕</th>
               <th onclick="sortTable('neg',4)">Localização ↕</th>
               <th onclick="sortTable('neg',5)">Preço Custo ↕</th>
@@ -478,7 +478,7 @@
     <div class="section-header fade-in">
       <div class="section-title">
         <div class="section-dot" style="--dot-color:var(--green)"></div>
-        Itens <strong style="color:var(--green)">EXCEDENTES</strong> — na Contagem mas ausentes no Estoque
+        Itens <strong style="color:var(--green)">EXCEDENTES</strong> — Quantidade no Físico maior que no Sistema
         <span class="count-pill green" id="cnt-pos">0</span>
       </div>
       <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap">
@@ -493,7 +493,7 @@
             <tr>
               <th onclick="sortTable('pos',0)">Cód. Item ↕</th>
               <th onclick="sortTable('pos',1)">Descrição ↕</th>
-              <th onclick="sortTable('pos',2)">Qtd Contagem ↕</th>
+              <th onclick="sortTable('pos',2)">Diferença (Qtd) ↕</th>
               <th onclick="sortTable('pos',3)">Grupo ↕</th>
               <th onclick="sortTable('pos',4)">Localização ↕</th>
               <th onclick="sortTable('pos',5)">Preço Custo ↕</th>
@@ -614,30 +614,46 @@ function processInventory() {
   dataEstoque.forEach(r  => valorEstoque  += r.estoque * r.preco);
   dataContagem.forEach(r => valorContagem += r.estoque * r.preco);
 
-  // ── Itens APENAS no Estoque (faltantes / saldo negativo)
+  // ── Divergências por Quantidade (Peças) ───────────────────
   negRows = [];
-  let valorNeg = 0;
-  mapEstoque.forEach((r, cod) => {
-    if (!mapContagem.has(cod)) {
-      negRows.push(r);
-      valorNeg += r.estoque * r.preco;
-    }
-  });
-
-  // ── Itens APENAS na Contagem (excedentes / saldo positivo)
   posRows = [];
+  let valorNeg = 0;
   let valorPos = 0;
-  mapContagem.forEach((r, cod) => {
-    if (!mapEstoque.has(cod)) {
-      posRows.push(r);
-      valorPos += r.estoque * r.preco;
+  let pecasFaltantes = 0;
+  let pecasExcedentes = 0;
+  let itensEmComum = 0;
+
+  const allKeys = new Set([...mapEstoque.keys(), ...mapContagem.keys()]);
+
+  allKeys.forEach(cod => {
+    const rowEst = mapEstoque.get(cod);
+    const rowCnt = mapContagem.get(cod);
+
+    const qtdEst = rowEst ? rowEst.estoque : 0;
+    const qtdCnt = rowCnt ? rowCnt.estoque : 0;
+    const preco = rowEst ? rowEst.preco : (rowCnt ? rowCnt.preco : 0);
+    const baseRow = rowEst || rowCnt;
+
+    if (rowEst && rowCnt) {
+      itensEmComum++;
+    }
+
+    if (qtdEst > qtdCnt) {
+      const diff = qtdEst - qtdCnt;
+      pecasFaltantes += diff;
+      valorNeg += diff * preco;
+      negRows.push({ ...baseRow, estoque: diff }); // Tabela mostrará a diferença na coluna 'Diferença'
+    } else if (qtdCnt > qtdEst) {
+      const diff = qtdCnt - qtdEst;
+      pecasExcedentes += diff;
+      valorPos += diff * preco;
+      posRows.push({ ...baseRow, estoque: diff });
     }
   });
 
   // ── Acuracidade: itens em comum (chaves normalizadas) / total único estoque
   const totalEstUnicos = mapEstoque.size;
   const totalCntUnicos = mapContagem.size;
-  const itensEmComum   = totalEstUnicos - negRows.length;
   const acuracy = totalEstUnicos > 0 ? (itensEmComum / totalEstUnicos) * 100 : 0;
 
   // ── Diferença financeira
@@ -655,9 +671,9 @@ function processInventory() {
 
 
   // ── Atualiza KPI Linha 2 (Divergências) ───────────
-  document.getElementById('kpi-qtd-neg').textContent = fmtNum(negRows.length);
+  document.getElementById('kpi-qtd-neg').textContent = fmtNum(pecasFaltantes);
   document.getElementById('kpi-val-neg').textContent = fmtBRL(valorNeg);
-  document.getElementById('kpi-qtd-pos').textContent = fmtNum(posRows.length);
+  document.getElementById('kpi-qtd-pos').textContent = fmtNum(pecasExcedentes);
   document.getElementById('kpi-val-pos').textContent = fmtBRL(valorPos);
   document.getElementById('kpi-acuracy').textContent = fmtPct(acuracy);
   document.getElementById('kpi-itens-ok').textContent = fmtNum(itensEmComum) + ' em comum | ' + fmtNum(totalEstUnicos) + ' únicos estoque';
