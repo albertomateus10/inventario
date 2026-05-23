@@ -39,17 +39,17 @@
       overflow-x: hidden;
     }
 
-    /* ── HEADER ──────────────────────────────── */
+    /* ── HEADER & UPLOAD ────────────────────────── */
     header {
       background: #ffffff;
       border-bottom: 1px solid var(--border);
-      padding: 1.1rem 2rem;
-      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.8rem 2rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
       position: sticky; top: 0; z-index: 100;
       backdrop-filter: blur(12px);
       box-shadow: 0 1px 12px rgba(0,0,0,.06);
     }
-    .logo { display: flex; align-items: center; gap: .75rem; }
+    .logo { display: flex; align-items: center; gap: .75rem; flex-shrink: 0; }
     .logo-icon {
       width: 38px; height: 38px;
       background: linear-gradient(135deg, var(--accent), #a855f7);
@@ -57,66 +57,38 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 1.1rem;
     }
-    .logo h1 {
-      font-size: 1.1rem; font-weight: 700;
-      color: #1e293b;
-    }
-    .logo span {
-      font-size: .68rem; color: var(--text-secondary);
-      display: block; margin-top: 1px;
-    }
-    #status-badge {
-      font-size: .73rem; font-weight: 600;
-      padding: .32rem .85rem; border-radius: 999px;
-      background: rgba(79,70,229,.1);
-      color: var(--accent);
-      border: 1px solid rgba(79,70,229,.2);
-      transition: all .3s;
-    }
-    #status-badge.ok {
-      background: rgba(5,150,105,.1);
-      color: #047857;
-      border-color: rgba(5,150,105,.25);
-    }
+    .logo h1 { font-size: 1.1rem; font-weight: 700; color: #1e293b; }
+    .logo span { font-size: .68rem; color: var(--text-secondary); display: block; margin-top: 1px; }
+
+    .header-actions { display: flex; align-items: stretch; gap: 0.75rem; flex-wrap: wrap; }
 
     /* ── UPLOAD ──────────────────────────────────── */
-    .upload-section {
-      max-width: 1340px; margin: 1.75rem auto; padding: 0 2rem;
-    }
-    .upload-grid {
-      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;
-      align-items: end;
-    }
     .upload-box {
       background: var(--bg-card);
-      border: 1.5px dashed rgba(79,70,229,.3);
-      border-radius: 14px; padding: 1.4rem;
-      cursor: pointer; transition: all .25s;
+      border: 1px solid rgba(79,70,229,.3);
+      border-radius: 8px; padding: 0.6rem 1rem;
+      cursor: pointer; transition: all .2s;
       position: relative; overflow: hidden;
+      min-width: 200px; display: flex; flex-direction: column; justify-content: center;
     }
-    .upload-box::before {
-      content: ''; position: absolute; inset: 0;
-      background: radial-gradient(ellipse at top left, rgba(79,70,229,.04), transparent 70%);
-      pointer-events: none;
-    }
-    .upload-box:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(79,70,229,.1); }
-    .upload-box.loaded { border-color: var(--green); border-style: solid; }
-    .upload-box.loaded::before { background: radial-gradient(ellipse at top left, rgba(5,150,105,.04), transparent 70%); }
+    .upload-box:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(79,70,229,.08); }
+    .upload-box.loaded { border-color: var(--green); }
     .upload-box input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-    .upload-label { font-size: .67rem; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: .45rem; }
-    .upload-title { font-size: .95rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: .45rem; }
-    .upload-hint { font-size: .73rem; color: var(--text-secondary); margin-top: .3rem; }
+    .upload-label { font-size: .62rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: .25rem; }
+    .upload-title { font-size: .85rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: .35rem; }
+    .upload-hint { font-size: .65rem; color: var(--text-secondary); margin-top: .15rem; }
 
     #btn-process {
       background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%);
       color: #fff; font-family: 'Inter', sans-serif;
-      font-size: .88rem; font-weight: 700;
-      border: none; border-radius: 12px; padding: 1rem 2rem;
-      cursor: pointer; transition: all .25s; width: 100%;
+      font-size: .85rem; font-weight: 700;
+      border: none; border-radius: 8px; padding: 0 1.5rem;
+      cursor: pointer; transition: all .2s;
       letter-spacing: .03em; box-shadow: 0 4px 14px rgba(79,70,229,.3);
+      display: flex; align-items: center; justify-content: center; gap: .4rem;
     }
-    #btn-process:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(79,70,229,.45); }
-    #btn-process:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+    #btn-process:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79,70,229,.4); }
+    #btn-process:disabled { opacity: .35; cursor: not-allowed; transform: none; box-shadow: none; }
 
     /* ── MAIN ────────────────────────────────────── */
     main { max-width: 1340px; margin: 0 auto; padding: 0 2rem 3rem; }
@@ -135,6 +107,7 @@
     /* ── KPI GRID ────────────────────────────────── */
     .kpi-grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.1rem; margin-bottom: 2rem; }
     .kpi-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.1rem; margin-bottom: .25rem; }
+    .kpi-grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.1rem; margin-bottom: 2rem; }
     .kpi-grid-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 1.1rem; margin-bottom: 2rem; }
 
     .kpi-card {
@@ -166,6 +139,10 @@
     .kpi-value {
       font-size: 1.65rem; font-weight: 800; line-height: 1.1;
       color: var(--kc-text, var(--text-primary));
+    }
+    .kpi-value.text-truncate {
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-size: 1.1rem; margin-top: 0.2rem;
     }
     .kpi-sub { font-size: .72rem; color: var(--text-secondary); margin-top: .45rem; }
     .kpi-badge {
@@ -280,10 +257,13 @@
 
     /* ── RESPONSIVE ───────────────────────────────── */
     @media (max-width: 1100px) {
-      .kpi-grid-5 { grid-template-columns: repeat(3,1fr); }
+      .kpi-grid-4, .kpi-grid-5 { grid-template-columns: repeat(2,1fr); }
     }
     @media (max-width: 800px) {
-      .kpi-grid-2, .kpi-grid-3, .kpi-grid-5, .upload-grid { grid-template-columns: 1fr; }
+      header { flex-direction: column; align-items: stretch; }
+      .header-actions { flex-direction: column; width: 100%; }
+      .upload-box, #btn-process { width: 100%; padding: 0.8rem; }
+      .kpi-grid-2, .kpi-grid-3, .kpi-grid-4, .kpi-grid-5 { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -301,12 +281,8 @@
     <div class="logo-icon">📦</div>
     <h1>Inventário<span>Dashboard de Divergências</span></h1>
   </div>
-  <span id="status-badge">Aguardando arquivos</span>
-</header>
-
-<!-- UPLOAD -->
-<section class="upload-section">
-  <div class="upload-grid">
+  
+  <div class="header-actions">
     <div class="upload-box" id="box-estoque">
       <input type="file" id="file-estoque" accept=".xlsx,.xls" />
       <div class="upload-label">Base 1 — Sistema</div>
@@ -321,7 +297,7 @@
     </div>
     <button id="btn-process" disabled>⚡ Processar Inventário</button>
   </div>
-</section>
+</header>
 
 <!-- MAIN -->
 <main>
@@ -335,6 +311,39 @@
 
   <!-- KPIs — só exibidos após processar -->
   <div id="kpi-section" style="display:none">
+
+    <!-- Storytelling / Insights -->
+    <div class="kpi-row-label">💡 Storytelling & Insights</div>
+    <div class="kpi-grid-4" id="storytelling-grid">
+      <div class="kpi-card" style="--kc:#f43f5e; --kc-text:#f43f5e">
+        <div class="kpi-glow"></div>
+        <div class="kpi-icon">📉</div>
+        <div class="kpi-label">Peça que mais faltou (Qtd)</div>
+        <div class="kpi-value text-truncate" id="st-mais-faltou" title="">—</div>
+        <div class="kpi-sub" id="st-mais-faltou-sub">—</div>
+      </div>
+      <div class="kpi-card" style="--kc:#10b981; --kc-text:#10b981">
+        <div class="kpi-glow"></div>
+        <div class="kpi-icon">📈</div>
+        <div class="kpi-label">Peça que mais sobrou (Qtd)</div>
+        <div class="kpi-value text-truncate" id="st-mais-sobrou" title="">—</div>
+        <div class="kpi-sub" id="st-mais-sobrou-sub">—</div>
+      </div>
+      <div class="kpi-card" style="--kc:#fb923c; --kc-text:#fb923c">
+        <div class="kpi-glow"></div>
+        <div class="kpi-icon">💎</div>
+        <div class="kpi-label">Peça mais cara (Faltante)</div>
+        <div class="kpi-value text-truncate" id="st-cara-faltou" title="">—</div>
+        <div class="kpi-sub" id="st-cara-faltou-sub">—</div>
+      </div>
+      <div class="kpi-card" style="--kc:#34d399; --kc-text:#34d399">
+        <div class="kpi-glow"></div>
+        <div class="kpi-icon">💎</div>
+        <div class="kpi-label">Peça mais cara (Sobrou)</div>
+        <div class="kpi-value text-truncate" id="st-cara-sobrou" title="">—</div>
+        <div class="kpi-sub" id="st-cara-sobrou-sub">—</div>
+      </div>
+    </div>
 
     <!-- Linha 1: Valores monetários -->
     <div class="kpi-row-label">💰 Resumo Financeiro</div>
@@ -589,7 +598,9 @@ document.getElementById('file-contagem').addEventListener('change', async functi
 });
 
 function checkReady() {
-  document.getElementById('btn-process').disabled = !(dataEstoque && dataContagem);
+  const btn = document.getElementById('btn-process');
+  btn.disabled = !(dataEstoque && dataContagem);
+  if (!btn.disabled) btn.textContent = '⚡ Processar Inventário';
 }
 
 // ─── Processar ────────────────────────────────────────
@@ -659,6 +670,33 @@ function processInventory() {
   // ── Diferença financeira
   const diff = valorEstoque - valorContagem;
 
+  // ── Atualiza Storytelling (Insights) ──────────────
+  const maisFaltou = negRows.length > 0 ? negRows.reduce((a, b) => a.estoque > b.estoque ? a : b) : null;
+  const maisSobrou = posRows.length > 0 ? posRows.reduce((a, b) => a.estoque > b.estoque ? a : b) : null;
+  const caraFaltou = negRows.length > 0 ? negRows.reduce((a, b) => a.preco > b.preco ? a : b) : null;
+  const caraSobrou = posRows.length > 0 ? posRows.reduce((a, b) => a.preco > b.preco ? a : b) : null;
+
+  const setST = (id, item, subTextPrefix, subTextProp) => {
+    const el = document.getElementById(id);
+    const sub = document.getElementById(id + '-sub');
+    if (item) {
+      const name = item.desc || item.cod;
+      el.textContent = name;
+      el.title = name;
+      const propVal = subTextProp === 'preco' ? fmtBRL(item.preco) : fmtNum(item.estoque);
+      sub.textContent = `${subTextPrefix}: ${propVal} (${item.cod})`;
+    } else {
+      el.textContent = '—';
+      el.title = '';
+      sub.textContent = '—';
+    }
+  };
+
+  setST('st-mais-faltou', maisFaltou, 'Qtd', 'estoque');
+  setST('st-mais-sobrou', maisSobrou, 'Qtd', 'estoque');
+  setST('st-cara-faltou', caraFaltou, 'Preço Unit.', 'preco');
+  setST('st-cara-sobrou', caraSobrou, 'Preço Unit.', 'preco');
+
   // ── Atualiza KPI Linha 1 (Financeiro) ─────────────
   document.getElementById('kpi-val-est').textContent  = fmtBRL(valorEstoque);
   document.getElementById('kpi-sub-est').textContent  = `${fmtNum(totalEstUnicos)} códigos únicos`;
@@ -724,9 +762,8 @@ function processInventory() {
   document.getElementById('section-neg').style.display = '';
   document.getElementById('section-pos').style.display = '';
 
-  const badge2 = document.getElementById('status-badge');
-  badge2.textContent = '✅ Inventário processado';
-  badge2.classList.add('ok');
+  const btn = document.getElementById('btn-process');
+  btn.textContent = '✅ Processado';
 }
 
 // ─── Renderizar tabela ────────────────────────────────
