@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard de Inventário</title>
+  <title>Análise de Inventário</title>
   <meta name="description" content="Dashboard de inventário para análise de divergências entre estoque e contagem física." />
 
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -15,17 +15,19 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg-deep:     #f0f2f8;
+      --bg-deep:     #f3f4f6;
       --bg-card:     #ffffff;
-      --bg-surface:  #f4f6fb;
-      --border:      rgba(0,0,0,0.08);
-      --accent:      #4f46e5;
-      --accent-glow: #6366f1;
+      --bg-surface:  #f8f9fb;
+      --border:      rgba(15,23,42,0.09);
+      --accent:      #1d1d1b;
+      --accent-glow: #3f3f3c;
+      --brand-green: #3aaf62;
+      --brand-red:   #e83a3a;
       --green:       #059669;
       --red:         #e11d48;
       --yellow:      #d97706;
       --orange:      #ea580c;
-      --text-primary:   #0f172a;
+      --text-primary:   #111827;
       --text-secondary: #64748b;
       --text-muted:     #94a3b8;
     }
@@ -37,58 +39,54 @@
       color: var(--text-primary);
       min-height: 100vh;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* ── HEADER & UPLOAD ────────────────────────── */
     header {
-      background: #ffffff;
+      background: rgba(255,255,255,.96);
       border-bottom: 1px solid var(--border);
-      padding: 0.8rem 2rem;
+      padding: 0.75rem 2rem;
       display: flex; align-items: center; justify-content: space-between; gap: 1rem;
       position: sticky; top: 0; z-index: 100;
       backdrop-filter: blur(12px);
-      box-shadow: 0 1px 12px rgba(0,0,0,.06);
+      box-shadow: 0 1px 10px rgba(15,23,42,.05);
     }
-    .logo { display: flex; align-items: center; gap: .75rem; flex-shrink: 0; }
-    .logo-icon {
-      width: 38px; height: 38px;
-      background: linear-gradient(135deg, var(--accent), #a855f7);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem;
+    header::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--brand-green) 0 33.3%, #e5e7eb 33.3% 66.6%, var(--brand-red) 66.6% 100%);
     }
-    .logo h1 { font-size: 1.1rem; font-weight: 700; color: #1e293b; }
-    .logo span { font-size: .68rem; color: var(--text-secondary); display: block; margin-top: 1px; }
+    .logo { display: flex; align-items: center; gap: 1.1rem; flex-shrink: 0; }
+    .brand-mark {
+      width: 150px; aspect-ratio: 2251 / 210; overflow: hidden; flex-shrink: 0;
+    }
+    .brand-mark img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; display: block; }
+    .logo-text { padding-left: 1.1rem; border-left: 1px solid var(--border); }
+    .logo h1 { font-size: 1rem; font-weight: 700; color: #111827; letter-spacing: -.01em; line-height: 1.2; }
+    .logo span { font-size: .68rem; color: var(--text-secondary); display: block; margin-top: 2px; font-weight: 500; }
 
     .header-actions { display: flex; align-items: stretch; gap: 0.75rem; flex-wrap: wrap; }
 
-    /* ── UPLOAD ──────────────────────────────────── */
-    .upload-box {
-      background: var(--bg-card);
-      border: 1px solid rgba(79,70,229,.3);
-      border-radius: 8px; padding: 0.6rem 1rem;
-      cursor: pointer; transition: all .2s;
-      position: relative; overflow: hidden;
-      min-width: 200px; display: flex; flex-direction: column; justify-content: center;
+    /* BOTÕES DA CAPA / NOVA ANÁLISE */
+    .cover-actions { display: flex; justify-content: center; gap: .85rem; flex-wrap: wrap; }
+    .cover-btn-outline { background: #fff !important; color: var(--accent) !important; border: 1.5px solid var(--accent) !important; box-shadow: none !important; }
+    .cover-btn-outline:hover { background: var(--accent) !important; color: #fff !important; }
+    .cover-btn:disabled { opacity: .35; cursor: not-allowed; transform: none; box-shadow: none; }
+    .cover-btn:disabled:hover { background: var(--accent); transform: none; }
+    .cover-file {
+      display: none; align-items: center; justify-content: center; gap: .6rem; flex-wrap: wrap;
+      margin-top: 1.25rem; font-size: .8rem; color: var(--text-secondary);
     }
-    .upload-box:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(79,70,229,.08); }
-    .upload-box.loaded { border-color: var(--green); }
-    .upload-box input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-    .upload-label { font-size: .62rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: .25rem; }
-    .upload-title { font-size: .85rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: .35rem; }
-    .upload-hint { font-size: .65rem; color: var(--text-secondary); margin-top: .15rem; }
-
-    #btn-process {
-      background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%);
-      color: #fff; font-family: 'Inter', sans-serif;
-      font-size: .85rem; font-weight: 700;
-      border: none; border-radius: 8px; padding: 0 1.5rem;
-      cursor: pointer; transition: all .2s;
-      letter-spacing: .03em; box-shadow: 0 4px 14px rgba(79,70,229,.3);
-      display: flex; align-items: center; justify-content: center; gap: .4rem;
+    .cover-file.loaded { display: flex; }
+    .cover-file strong { color: var(--green); font-weight: 700; }
+    #btn-new {
+      display: none; font-family: 'Inter', sans-serif; font-size: .8rem; font-weight: 600;
+      color: var(--accent); background: #fff; border: 1px solid var(--border);
+      border-radius: 8px; padding: .55rem 1.1rem; cursor: pointer; transition: all .2s;
     }
-    #btn-process:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79,70,229,.4); }
-    #btn-process:disabled { opacity: .35; cursor: not-allowed; transform: none; box-shadow: none; }
+    #btn-new:hover { border-color: var(--accent); }
+    body.processed #btn-new { display: block; }
+    body:not(.processed) header { display: none; }
 
     /* ── MAIN ────────────────────────────────────── */
     main { max-width: 1340px; margin: 0 auto; padding: 0 2rem 3rem; }
@@ -131,7 +129,12 @@
       background: var(--kc, var(--accent));
       opacity: .06; filter: blur(28px); pointer-events: none;
     }
-    .kpi-icon { font-size: 1.5rem; margin-bottom: .6rem; }
+    .kpi-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.15rem; margin-bottom: .8rem;
+      background: color-mix(in srgb, var(--kc, var(--accent)) 12%, #fff);
+    }
     .kpi-label {
       font-size: .67rem; font-weight: 600; letter-spacing: .08em;
       text-transform: uppercase; color: var(--text-secondary); margin-bottom: .3rem;
@@ -152,7 +155,7 @@
     }
     .badge-red   { background: rgba(225,29,72,.1);    color: #be123c; }
     .badge-green { background: rgba(5,150,105,.1);   color: #047857; }
-    .badge-blue  { background: rgba(79,70,229,.1);   color: var(--accent); }
+    .badge-blue  { background: rgba(29,29,27,.1);   color: var(--accent); }
     .badge-orange{ background: rgba(234,88,12,.1);   color: #c2410c; }
     .badge-yellow{ background: rgba(217,119,6,.1);   color: #92400e; }
 
@@ -171,11 +174,11 @@
       display: inline-flex; align-items: center; gap: .4rem;
       font-size: .75rem; font-weight: 600;
       padding: .42rem .95rem; border-radius: 8px; cursor: pointer;
-      border: 1px solid rgba(79,70,229,.3);
-      background: rgba(79,70,229,.07); color: var(--accent);
+      border: 1px solid rgba(29,29,27,.3);
+      background: rgba(29,29,27,.07); color: var(--accent);
       transition: all .2s;
     }
-    .export-btn:hover { background: rgba(79,70,229,.14); border-color: var(--accent); }
+    .export-btn:hover { background: rgba(29,29,27,.14); border-color: var(--accent); }
 
     /* ── TABLE ───────────────────────────────────── */
     .table-wrap {
@@ -196,7 +199,7 @@
     }
     th:hover { color: var(--text-primary); }
     td { padding: .7rem 1rem; color: var(--text-primary); border-bottom: 1px solid rgba(0,0,0,.04); white-space: nowrap; }
-    tbody tr:hover { background: rgba(79,70,229,.03); }
+    tbody tr:hover { background: rgba(29,29,27,.03); }
     tbody tr:last-child td { border-bottom: none; }
 
     .tag { display: inline-block; font-size: .65rem; font-weight: 700; padding: .18rem .55rem; border-radius: 999px; }
@@ -211,6 +214,51 @@
     .empty-state strong { font-size: .95rem; color: var(--text-primary); }
     .empty-state p { font-size: .82rem; max-width: 380px; text-align: center; line-height: 1.6; }
 
+    /* ── CAPA DE ENTRADA ────────────────────────────── */
+    .cover { display: flex; justify-content: center; padding: 3.5rem 0 2rem; }
+    .cover-card {
+      position: relative; overflow: hidden; width: 100%; max-width: 760px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 3rem 3rem 2.5rem; text-align: center;
+      box-shadow: 0 20px 50px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.04);
+      animation: fadeIn .5s ease both;
+    }
+    .cover-stripe {
+      position: absolute; top: 0; left: 0; right: 0; height: 5px;
+      background: linear-gradient(90deg, var(--brand-green) 0 33.3%, #e5e7eb 33.3% 66.6%, var(--brand-red) 66.6% 100%);
+    }
+    .cover-logo { width: min(440px, 80%); aspect-ratio: 2251 / 210; overflow: hidden; margin: .75rem auto 2rem; }
+    .cover-logo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; display: block; }
+    .cover-eyebrow {
+      font-size: .7rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+      color: var(--text-secondary); margin-bottom: .5rem;
+    }
+    .cover-title { font-size: 2rem; font-weight: 800; letter-spacing: -.02em; color: var(--text-primary); }
+    .cover-sub { font-size: .9rem; color: var(--text-secondary); line-height: 1.6; max-width: 520px; margin: .75rem auto 2rem; }
+    .cover-steps {
+      list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+      text-align: left; margin-bottom: 2rem;
+    }
+    .cover-steps li {
+      display: flex; flex-direction: column; gap: .6rem;
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1rem 1.1rem;
+    }
+    .step-n {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--accent); color: #fff; font-size: .75rem; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .cover-steps strong { display: block; font-size: .85rem; font-weight: 700; margin-bottom: .2rem; }
+    .cover-steps small { display: block; font-size: .74rem; color: var(--text-secondary); line-height: 1.5; }
+    .cover-btn {
+      font-family: 'Inter', sans-serif; font-size: .88rem; font-weight: 700; letter-spacing: .02em;
+      color: #fff; background: var(--accent); border: none; border-radius: 10px;
+      padding: .85rem 2rem; cursor: pointer; transition: all .2s;
+      box-shadow: 0 6px 18px rgba(29,29,27,.25);
+    }
+    .cover-btn:hover { transform: translateY(-2px); background: #000; box-shadow: 0 10px 24px rgba(29,29,27,.3); }
+
     /* ── LOADER ──────────────────────────────── */
     #loader-overlay {
       display: none; position: fixed; inset: 0; z-index: 999;
@@ -220,7 +268,7 @@
     #loader-overlay.active { display: flex; }
     .spinner {
       width: 48px; height: 48px;
-      border: 4px solid rgba(79,70,229,.2);
+      border: 4px solid rgba(29,29,27,.2);
       border-top-color: var(--accent); border-radius: 50%;
       animation: spin .8s linear infinite;
     }
@@ -264,6 +312,9 @@
       .header-actions { flex-direction: column; width: 100%; }
       .upload-box, #btn-process { width: 100%; padding: 0.8rem; }
       .kpi-grid-2, .kpi-grid-3, .kpi-grid-4, .kpi-grid-5 { grid-template-columns: 1fr; }
+      .cover-steps { grid-template-columns: 1fr; }
+      .cover-card { padding: 2rem 1.25rem; }
+      .logo-text { display: none; }
     }
   </style>
 </head>
@@ -278,24 +329,15 @@
 <!-- HEADER -->
 <header>
   <div class="logo">
-    <div class="logo-icon">📦</div>
-    <h1>Inventário<span>Dashboard de Divergências</span></h1>
+    <div class="brand-mark"><img src="logonova.png" alt="San Marino" /></div>
+    <div class="logo-text">
+      <h1>Análise de Inventário</h1>
+      <span>Estoque × Contagem Física</span>
+    </div>
   </div>
   
   <div class="header-actions">
-    <div class="upload-box" id="box-estoque">
-      <input type="file" id="file-estoque" accept=".xlsx,.xls" />
-      <div class="upload-label">Base 1 — Sistema</div>
-      <div class="upload-title" id="title-estoque">🗂️ Estoque (Sistema)</div>
-      <div class="upload-hint" id="hint-estoque">Clique para carregar o arquivo XLSX</div>
-    </div>
-    <div class="upload-box" id="box-contagem">
-      <input type="file" id="file-contagem" accept=".xlsx,.xls" />
-      <div class="upload-label">Base 2 — Físico</div>
-      <div class="upload-title" id="title-contagem">📋 Contagem (Físico)</div>
-      <div class="upload-hint" id="hint-contagem">Clique para carregar o arquivo XLSX</div>
-    </div>
-    <button id="btn-process" disabled>⚡ Processar Inventário</button>
+    <button type="button" id="btn-new" onclick="location.reload()">Nova análise</button>
   </div>
 </header>
 
@@ -303,10 +345,30 @@
 <main>
 
   <!-- Estado vazio inicial -->
-  <div class="empty-state" id="empty-state">
-    <div class="big">📊</div>
-    <strong>Carregue as duas planilhas para iniciar</strong>
-    <p>Selecione o arquivo de Estoque (Sistema) e o arquivo de Contagem (Físico) e clique em <em>Processar Inventário</em>.</p>
+  <div class="cover" id="empty-state">
+    <div class="cover-card">
+      <div class="cover-stripe"></div>
+      <div class="cover-logo"><img src="logonova.png" alt="San Marino" /></div>
+      <p class="cover-eyebrow">Controle de Estoque</p>
+      <h2 class="cover-title">Análise de Inventário</h2>
+      <p class="cover-sub">Conciliação entre o estoque do sistema e a contagem física, com divergências, impacto financeiro e acuracidade.</p>
+
+      <ol class="cover-steps">
+        <li><span class="step-n">1</span><div><strong>Carregue a planilha</strong><small>Arquivo de estoque com as colunas Físico, Saldo e Saldo financeiro</small></div></li>
+        <li><span class="step-n">2</span><div><strong>Processe o inventário</strong><small>Clique em “Processar Inventário” ao lado do botão de seleção</small></div></li>
+        <li><span class="step-n">3</span><div><strong>Analise os resultados</strong><small>Indicadores, faltantes, excedentes e exportação em Excel</small></div></li>
+      </ol>
+
+      <input type="file" id="file-estoque" accept=".xlsx,.xls" hidden />
+      <div class="cover-actions">
+        <button type="button" class="cover-btn cover-btn-outline" onclick="document.getElementById('file-estoque').click()">Selecionar planilha de estoque</button>
+        <button type="button" id="btn-process" class="cover-btn" disabled>Processar Inventário</button>
+      </div>
+      <div class="cover-file" id="box-estoque">
+        <strong id="title-estoque"></strong>
+        <span id="hint-estoque"></span>
+      </div>
+    </div>
   </div>
 
   <!-- KPIs — só exibidos após processar -->
@@ -349,7 +411,7 @@
     <div class="kpi-row-label">💰 Resumo Financeiro</div>
     <div class="kpi-grid-2">
 
-      <div class="kpi-card" style="--kc:#6366f1">
+      <div class="kpi-card" style="--kc:#3f3f3c">
         <div class="kpi-glow"></div>
         <div class="kpi-icon">🏭</div>
         <div class="kpi-label">Valor Total — Estoque Sistema</div>
@@ -424,7 +486,7 @@
     <div class="kpi-row-label" style="margin-top:1.75rem">📈 Saldo Geral Líquido</div>
     <div class="kpi-grid-2">
 
-      <div class="kpi-card" id="card-saldo-val" style="--kc:#6366f1; --kc-text:#0f172a">
+      <div class="kpi-card" id="card-saldo-val" style="--kc:#3f3f3c; --kc-text:#0f172a">
         <div class="kpi-glow"></div>
         <div class="kpi-icon">🏛️</div>
         <div class="kpi-label">Saldo Financeiro Líquido</div>
@@ -433,7 +495,7 @@
         <span class="kpi-badge badge-blue" id="kpi-badge-saldo-val">calculando…</span>
       </div>
 
-      <div class="kpi-card" id="card-saldo-pct" style="--kc:#6366f1; --kc-text:#0f172a">
+      <div class="kpi-card" id="card-saldo-pct" style="--kc:#3f3f3c; --kc-text:#0f172a">
         <div class="kpi-glow"></div>
         <div class="kpi-icon">📉</div>
         <div class="kpi-label">Impacto Percentual no Estoque</div>
@@ -521,7 +583,6 @@
 <script>
 // ─── Estado global ────────────────────────────────────
 let dataEstoque  = null;
-let dataContagem = null;
 let negRows = [];
 let posRows = [];
 let sortState = { neg: { col: -1, asc: true }, pos: { col: -1, asc: true } };
@@ -537,8 +598,15 @@ function readXlsx(file) {
     reader.onload = e => {
       try {
         const wb = XLSX.read(e.target.result, { type: 'array' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        resolve(XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }));
+        // Usa a aba que contém a coluna "Físico"; se nenhuma, usa a primeira
+        const toRows = n => XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: '' });
+        let rows = null;
+        for (const n of wb.SheetNames) {
+          const r = toRows(n);
+          const head = (r[0] || []).map(h => String(h).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim());
+          if (head.includes('fisico')) { rows = r; break; }
+        }
+        resolve(rows || toRows(wb.SheetNames[0]));
       } catch(err) { reject(err); }
     };
     reader.onerror = () => reject(new Error('Falha ao ler arquivo'));
@@ -555,22 +623,34 @@ function normCod(raw) {
     .toUpperCase();
 }
 
+// Colunas: A Cód | B Descrição | C Estoque | D Giro | E Grupo | F Localização | G Preço de Custo
+//          H Físico | I Saldo | J Saldo financeiro
 function parseRows(raw) {
   const rows = [];
+  const isBlank = v => v == null || String(v).trim() === '';
   for (let i = 1; i < raw.length; i++) {
     const r = raw[i];
     const codOrig = (r[0] == null || r[0] === '') ? '' : String(r[0]).trim();
     const codKey  = normCod(r[0]);
     if (!codKey) continue;
+    const estoque = parseFloat(r[2]) || 0;
+    const preco   = parseFloat(r[6]) || 0;
+    const fisico  = parseFloat(r[7]) || 0;                                   // coluna H
+    const saldo   = isBlank(r[8]) ? (fisico - estoque) : (parseFloat(r[8]) || 0); // coluna I
+    const saldoFin = isBlank(r[9]) ? (saldo * preco) : (parseFloat(r[9]) || 0);   // coluna J
     rows.push({
       cod:    codOrig,   // exibição original
       key:    codKey,    // chave normalizada p/ comparação
       desc:    String(r[1] || '').trim(),
-      estoque: parseFloat(r[2]) || 0,
+      estoque,
       giro:    parseFloat(r[3]) || 0,
       grupo:   String(r[4] || '').trim(),
       locacao: String(r[5] || '').trim(),
-      preco:   parseFloat(r[6]) || 0,
+      preco,
+      fisico,
+      contado: !isBlank(r[7]),   // Físico preenchido
+      saldo,
+      saldoFin,
     });
   }
   return rows;
@@ -582,25 +662,15 @@ document.getElementById('file-estoque').addEventListener('change', async functio
   const raw = await readXlsx(this.files[0]);
   dataEstoque = parseRows(raw);
   document.getElementById('box-estoque').classList.add('loaded');
-  document.getElementById('title-estoque').textContent = '✅ ' + this.files[0].name;
+  document.getElementById('title-estoque').textContent = '✓ ' + this.files[0].name;
   document.getElementById('hint-estoque').textContent = `${fmtNum(dataEstoque.length)} itens carregados`;
-  checkReady();
-});
-
-document.getElementById('file-contagem').addEventListener('change', async function() {
-  if (!this.files.length) return;
-  const raw = await readXlsx(this.files[0]);
-  dataContagem = parseRows(raw);
-  document.getElementById('box-contagem').classList.add('loaded');
-  document.getElementById('title-contagem').textContent = '✅ ' + this.files[0].name;
-  document.getElementById('hint-contagem').textContent = `${fmtNum(dataContagem.length)} itens carregados`;
   checkReady();
 });
 
 function checkReady() {
   const btn = document.getElementById('btn-process');
-  btn.disabled = !(dataEstoque && dataContagem);
-  if (!btn.disabled) btn.textContent = '⚡ Processar Inventário';
+  btn.disabled = !dataEstoque;
+  if (!btn.disabled) btn.textContent = 'Processar Inventário';
 }
 
 // ─── Processar ────────────────────────────────────────
@@ -613,6 +683,7 @@ document.getElementById('btn-process').addEventListener('click', () => {
 });
 
 function processInventory() {
+  const dataContagem = dataEstoque.filter(r => r.contado); // itens com Físico preenchido
   const mapEstoque  = new Map();
   const mapContagem = new Map();
   // Usa a chave normalizada para comparação robusta
@@ -623,7 +694,7 @@ function processInventory() {
   let valorEstoque  = 0;
   let valorContagem = 0;
   dataEstoque.forEach(r  => valorEstoque  += r.estoque * r.preco);
-  dataContagem.forEach(r => valorContagem += r.estoque * r.preco);
+  dataContagem.forEach(r => valorContagem += r.fisico * r.preco);
 
   // ── Divergências por Quantidade (Peças) ───────────────────
   negRows = [];
@@ -634,31 +705,22 @@ function processInventory() {
   let pecasExcedentes = 0;
   let itensEmComum = 0;
 
-  const allKeys = new Set([...mapEstoque.keys(), ...mapContagem.keys()]);
+  dataEstoque.forEach(row => {
+    if (row.contado) itensEmComum++;
 
-  allKeys.forEach(cod => {
-    const rowEst = mapEstoque.get(cod);
-    const rowCnt = mapContagem.get(cod);
-
-    const qtdEst = rowEst ? rowEst.estoque : 0;
-    const qtdCnt = rowCnt ? rowCnt.estoque : 0;
-    const preco = rowEst ? rowEst.preco : (rowCnt ? rowCnt.preco : 0);
-    const baseRow = rowEst || rowCnt;
-
-    if (rowEst && rowCnt) {
-      itensEmComum++;
-    }
-
-    if (qtdEst > qtdCnt) {
-      const diff = qtdEst - qtdCnt;
+    // Saldo (coluna I) = Físico − Estoque ; Saldo financeiro (coluna J) = Saldo × Preço
+    if (row.saldo < 0) {
+      const diff = -row.saldo;
+      const valor = Math.abs(row.saldoFin);
       pecasFaltantes += diff;
-      valorNeg += diff * preco;
-      negRows.push({ ...baseRow, estoque: diff }); // Tabela mostrará a diferença na coluna 'Diferença'
-    } else if (qtdCnt > qtdEst) {
-      const diff = qtdCnt - qtdEst;
+      valorNeg += valor;
+      negRows.push({ ...row, estoque: diff, total: valor }); // Tabela mostrará a diferença na coluna 'Diferença'
+    } else if (row.saldo > 0) {
+      const diff = row.saldo;
+      const valor = Math.abs(row.saldoFin);
       pecasExcedentes += diff;
-      valorPos += diff * preco;
-      posRows.push({ ...baseRow, estoque: diff });
+      valorPos += valor;
+      posRows.push({ ...row, estoque: diff, total: valor });
     }
   });
 
@@ -742,8 +804,8 @@ function processInventory() {
     badgeSaldoPct.textContent = '▼ Negativo'; badgeSaldoPct.className = 'kpi-badge badge-red';
   } else {
     // Zero
-    cardSaldoVal.style.setProperty('--kc', '#4f46e5'); cardSaldoVal.style.setProperty('--kc-text', '#0f172a');
-    cardSaldoPct.style.setProperty('--kc', '#4f46e5'); cardSaldoPct.style.setProperty('--kc-text', '#0f172a');
+    cardSaldoVal.style.setProperty('--kc', '#1d1d1b'); cardSaldoVal.style.setProperty('--kc-text', '#0f172a');
+    cardSaldoPct.style.setProperty('--kc', '#1d1d1b'); cardSaldoPct.style.setProperty('--kc-text', '#0f172a');
     badgeSaldoVal.textContent = '✔ Saldo Neutro (R$ 0)'; badgeSaldoVal.className = 'kpi-badge badge-blue';
     badgeSaldoPct.textContent = '✔ Zero Impacto'; badgeSaldoPct.className = 'kpi-badge badge-blue';
   }
@@ -763,7 +825,8 @@ function processInventory() {
   document.getElementById('section-pos').style.display = '';
 
   const btn = document.getElementById('btn-process');
-  btn.textContent = '✅ Processado';
+  btn.textContent = 'Processado ✓';
+  document.body.classList.add('processed');
 }
 
 // ─── Renderizar tabela ────────────────────────────────
@@ -777,7 +840,7 @@ function renderTable(type, rows) {
   const tagText  = type === 'neg' ? '⚠ Faltante' : '✚ Excedente';
 
   tbody.innerHTML = rows.map(r => {
-    const total = r.estoque * r.preco;
+    const total = r.total;
     return `
       <tr>
         <td><code style="font-size:.76rem;color:var(--accent-glow)">${esc(r.cod)}</code></td>
@@ -816,8 +879,8 @@ function sortTable(type, col) {
   const rows = type === 'neg' ? negRows : posRows;
   const keys = ['cod','desc','estoque','grupo','locacao','preco', '_total'];
   rows.sort((a, b) => {
-    let va = col === 6 ? a.estoque * a.preco : a[keys[col]];
-    let vb = col === 6 ? b.estoque * b.preco : b[keys[col]];
+    let va = col === 6 ? a.total : a[keys[col]];
+    let vb = col === 6 ? b.total : b[keys[col]];
     if (typeof va === 'string') return asc ? va.localeCompare(vb) : vb.localeCompare(va);
     return asc ? va - vb : vb - va;
   });
@@ -833,7 +896,7 @@ function exportTable(type) {
   const header = ['Cód. Item','Descrição','Qtd','Giro','Grupo','Localização','Preço de Custo','Valor Total','Status'];
   const data = [header, ...rows.map(r => [
     r.cod, r.desc, r.estoque, r.giro, r.grupo, r.locacao,
-    r.preco, r.estoque * r.preco, status
+    r.preco, r.total, status
   ])];
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(data);
